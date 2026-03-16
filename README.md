@@ -50,9 +50,8 @@ Diseñar e implementar un sistema automatizado de gestión de copias de segurida
 ## Arquitectura de la red
 
 La infraestructura utilizada en el proyecto está compuesta por cinco máquinas virtuales:
-||||
+| 🎛 ORCHESTRATOR |Servidor de automatización| Ansible, BorgBackup|
 |-------|--------|--------|
-| 🎛 ORCHESTRATOR | Servidor de automatización | Ansible, BorgBackup |
 | 🗃 MYSQL | Servidor de base de datos | MySQL |
 | 🌍 WEB | Servidor web | Apache |
 | 📚 STORAGE1 | Nodo de almacenamiento | GlusterFS, Samba |
