@@ -124,3 +124,109 @@ Cada nodo dispone de:
 - Sistema de archivos: **XFS**
 
 Directorio del brick:
+/gluster/brick1
+
+Volumen replicado:
+samba_vol
+
+Punto de montaje:
+/mnt/gluster
+
+
+---
+
+# 🔄 Flujo de funcionamiento de los backups
+
+El proceso de copia de seguridad sigue los siguientes pasos:
+
+1. El servidor de orquestación inicia la tarea programada.
+2. Se ejecutan tareas remotas en los servidores objetivo.
+3. BorgBackup genera copias optimizadas con deduplicación.
+4. Las copias se almacenan en el cluster distribuido.
+5. Los repositorios quedan disponibles para su restauración.
+
+Este proceso permite **reducir el espacio utilizado y mantener diferentes versiones de los datos**.
+
+---
+
+# 📂 Acceso al almacenamiento
+
+El volumen creado mediante GlusterFS se comparte utilizando **Samba**, lo que permite que los backups puedan almacenarse y accederse desde distintos sistemas dentro de la red.
+
+Esto facilita:
+
+- Compatibilidad con diferentes sistemas operativos
+- Centralización del almacenamiento
+- Integración sencilla en redes empresariales
+
+---
+
+# 🛡 Diseño de alta disponibilidad
+
+Para entornos de producción, el sistema puede ampliarse incorporando mecanismos de alta disponibilidad.
+
+## Cluster Samba con CTDB
+
+Mediante **CTDB** es posible implementar un cluster Samba **activo-activo**, donde ambos nodos pueden ofrecer el servicio simultáneamente.
+
+Ventajas:
+
+- Balanceo de carga
+- Mayor disponibilidad del servicio
+- Failover automático
+
+## Dirección IP virtual
+
+El acceso al almacenamiento puede realizarse mediante una **IP virtual compartida**, de modo que los clientes continúan accediendo al sistema incluso si uno de los nodos falla.
+
+---
+
+# 🧰 Tecnologías utilizadas
+
+| Tecnología | Función |
+|-----------|-----------|
+| Ubuntu Server | Sistema operativo |
+| Ansible | Automatización y orquestación |
+| BorgBackup | Sistema de copias de seguridad |
+| GlusterFS | Almacenamiento distribuido |
+| Samba | Compartición de archivos |
+| MySQL | Base de datos |
+| Apache | Servidor web |
+| Vagrant | Gestión de máquinas virtuales |
+
+---
+
+# 🖥 Entorno de despliegue
+
+La infraestructura del proyecto se ejecuta en un entorno de laboratorio basado en **máquinas virtuales gestionadas mediante Vagrant**.
+
+Esto permite reproducir fácilmente toda la arquitectura del sistema en diferentes equipos.
+
+Entre sus ventajas se encuentran:
+
+- Reproducibilidad del entorno
+- Facilidad de despliegue
+- Simulación de infraestructuras empresariales
+
+---
+
+# 📊 Resultados esperados
+
+Con la implementación de este sistema se pretende obtener:
+
+- Automatización completa de copias de seguridad
+- Optimización del almacenamiento mediante deduplicación
+- Infraestructura tolerante a fallos
+- Plataforma escalable para múltiples servidores
+- Simulación realista de un entorno empresarial
+
+El resultado final es una **plataforma centralizada de protección de datos**, preparada para gestionar backups de diferentes servicios dentro de una infraestructura empresarial.
+
+---
+
+# 👨‍💻 Autor
+
+Proyecto académico desarrollado en el ciclo formativo:
+
+**Administración de Sistemas Informáticos en Red (ASIR)**  
+CIFP Villa de Agüimes
