@@ -1,7 +1,11 @@
 ### Sistema de orquestación centralizada para copias de seguridad empresariales
 
 Infraestructura diseñada para automatizar la protección de servicios críticos, combinando orquestación de sistemas, deduplicación de datos y almacenamiento distribuido para mejorar la gestión de copias de seguridad en entornos empresariales.
-
+---
+Proyecto académico desarrollado por:
+- Eneko Salguero Suárez
+- 
+- 
 ---
 
 # 📑 Índice
@@ -14,9 +18,7 @@ Infraestructura diseñada para automatizar la protección de servicios críticos
 - Cluster de almacenamiento
 - Diseño de alta disponibilidad
 - Tecnologías utilizadas
-- Entorno de despliegue
 - Resultados esperados
-- Autor
 
 ---
 
@@ -97,7 +99,7 @@ Las bases de datos contienen información crítica, por lo que el sistema automa
 
 ---
 
-# 💾 Cluster de almacenamiento
+##Cluster de almacenamiento
 
 El almacenamiento de los backups se realiza mediante un cluster basado en GlusterFS, formado por dos nodos de almacenamiento.
 
@@ -190,20 +192,6 @@ El acceso al almacenamiento puede realizarse mediante una IP virtual compartida,
 
 ---
 
-# 🖥 Entorno de despliegue
-
-La infraestructura del proyecto se ejecuta en un entorno de laboratorio basado en máquinas virtuales gestionadas mediante Vagrant.
-
-Esto permite reproducir fácilmente toda la arquitectura del sistema en diferentes equipos.
-
-Entre sus ventajas se encuentran:
-
-- Reproducibilidad del entorno
-- Facilidad de despliegue
-- Simulación de infraestructuras empresariales
-
----
-
 # 📊 Resultados esperados
 
 Con la implementación de este sistema se pretende obtener:
@@ -216,8 +204,4 @@ Con la implementación de este sistema se pretende obtener:
 
 El resultado final es una plataforma centralizada de protección de datos, preparada para gestionar backups de diferentes servicios dentro de una infraestructura empresarial.
 
----
 
-# 👨‍💻 Autor
-
-Proyecto académico desarrollado por:
