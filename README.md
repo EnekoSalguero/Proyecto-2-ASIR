@@ -16,8 +16,8 @@ Infraestructura diseñada para automatizar la protección de servicios críticos
 - Flujo de funcionamiento de los backups
 - Acceso al almacenamiento
 - Diseño de alta disponibilidad
-- Tecnologías utilizadas
-- Resultados esperados
+- Finalidad
+- Herramientas utilizadas
 
 ---
 
@@ -176,19 +176,6 @@ El acceso al almacenamiento puede realizarse mediante una IP virtual compartida,
 
 ---
 
-# 🛠️ Herramientas utilizadas
-
-|Ansible|Automatización y orquestación|
-|-----------|-----------|
-| BorgBackup | Sistema de copias de seguridad |
-| GlusterFS | Almacenamiento distribuido |
-| Samba | Compartición de archivos |
-| MySQL | Base de datos |
-| Apache | Servidor web |
-| Vagrant | Gestión de máquinas virtuales |
-
----
-
 # 📊 Finalidad
 
 Con la implementación de este sistema se pretende obtener:
@@ -200,5 +187,17 @@ Con la implementación de este sistema se pretende obtener:
 - Simulación realista de un entorno empresarial
 
 El resultado final es una plataforma centralizada de protección de datos, preparada para gestionar backups de diferentes servicios dentro de una infraestructura empresarial.
+
+---
+
+# 🛠️ Herramientas utilizadas
+
+- Ansible Automatización y orquestación
+- BorgBackup Sistema de copias de seguridad
+- GlusterFS Almacenamiento distribuido
+- Samba Compartición de archivos
+- MySQL Base de datos
+- Apache Servidor web
+- Vagrant Gestión de máquinas virtuales
 
 
