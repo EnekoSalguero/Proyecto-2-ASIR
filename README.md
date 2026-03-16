@@ -2,7 +2,7 @@
 ---
 Infraestructura diseñada para automatizar la protección de servicios críticos, combinando orquestación de sistemas, deduplicación de datos y almacenamiento distribuido para mejorar la gestión de copias de seguridad en entornos empresariales.
 
-Proyecto académico desarrollado por:
+###Proyecto desarrollado por:
 - Eneko Salguero Suárez
 - 
 - 
