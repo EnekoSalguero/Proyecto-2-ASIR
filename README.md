@@ -39,7 +39,7 @@ La solución implementa **automatización mediante orquestación, almacenamiento
 
 ---
 
-# 🎯 Objetivos del proyecto
+# 📌 Objetivos del proyecto
 
 ## Objetivo principal
 
@@ -56,7 +56,7 @@ Diseñar e implementar un **sistema automatizado de gestión de copias de seguri
 
 ---
 
-# 🏗 Arquitectura del sistema
+# 💻 Arquitectura del sistema
 
 La infraestructura utilizada en el proyecto está compuesta por **cinco máquinas virtuales**, cada una con una función específica dentro del sistema.
 
@@ -72,7 +72,7 @@ Esta arquitectura permite separar claramente las capas de **servicios, control y
 
 ---
 
-# ⚙ Componentes de la infraestructura
+# 🖇️ Componentes de la infraestructura
 
 ## Servidor de orquestación
 
