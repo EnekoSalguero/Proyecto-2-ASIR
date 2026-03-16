@@ -14,7 +14,7 @@ Infraestructura diseñada para automatizar la protección de servicios críticos
 - Objetivos del proyecto
 - Componentes de la infraestructura
 - Flujo de funcionamiento de los backups
-- Cluster de almacenamiento
+- Acceso al almacenamiento
 - Diseño de alta disponibilidad
 - Tecnologías utilizadas
 - Resultados esperados
