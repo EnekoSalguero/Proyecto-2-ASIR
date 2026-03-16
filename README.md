@@ -4,8 +4,8 @@ Infraestructura diseñada para automatizar la protección de servicios críticos
 
 ### Proyecto desarrollado por:
 - Eneko Salguero Suárez
-- 
-- 
+- Enrique Sosa Gonzalez
+- Marcos Guerra
 ---
 
 # 📑 Índice
