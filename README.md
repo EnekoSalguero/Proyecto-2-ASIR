@@ -226,7 +226,4 @@ El resultado final es una **plataforma centralizada de protección de datos**, p
 
 # 👨‍💻 Autor
 
-Proyecto académico desarrollado en el ciclo formativo:
-
-**Administración de Sistemas Informáticos en Red (ASIR)**  
-CIFP Villa de Agüimes
+Proyecto académico desarrollado por:
