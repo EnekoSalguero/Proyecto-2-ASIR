@@ -176,7 +176,7 @@ El acceso al almacenamiento puede realizarse mediante una IP virtual compartida,
 
 ---
 
-# Herramientas utilizadas
+# 🛠️ Herramientas utilizadas
 
 | Tecnología | Función |
 |-----------|-----------|
