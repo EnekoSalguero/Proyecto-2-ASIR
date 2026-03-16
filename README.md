@@ -1,7 +1,6 @@
 # Proyecto-AutomatizaciónBackupInfraestructura
 <div align="center">
 
-<img src="assets/logo_backup.png" width="420">
 
 # 💾 Sistema Automatizado de Copias de Seguridad
 
