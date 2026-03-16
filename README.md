@@ -26,13 +26,6 @@ La información digital constituye uno de los recursos más importantes dentro d
 
 A pesar de ello, muchas infraestructuras continúan utilizando procesos manuales o herramientas poco integradas para gestionar las copias de seguridad.
 
-Este tipo de prácticas genera varios inconvenientes:
-
-- Dependencia de procesos manuales
-- Mayor probabilidad de errores humanos
-- Falta de centralización en la gestión
-- Uso poco eficiente del almacenamiento
-
 Este proyecto propone la creación de una **plataforma automatizada de gestión de backups**, capaz de centralizar y coordinar copias de seguridad de múltiples servidores dentro de una infraestructura simulada de empresa.
 
 La solución implementa **automatización mediante orquestación, almacenamiento replicado y deduplicación de datos**, con el objetivo de acercarse al funcionamiento de sistemas utilizados en entornos reales.
