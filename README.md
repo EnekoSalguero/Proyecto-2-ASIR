@@ -178,9 +178,8 @@ El acceso al almacenamiento puede realizarse mediante una IP virtual compartida,
 
 # 🛠️ Herramientas utilizadas
 
-|Ubuntu Server|Sistema operativo|
+|Ansible|Automatización y orquestación|
 |-----------|-----------|
-| Ansible | Automatización y orquestación |
 | BorgBackup | Sistema de copias de seguridad |
 | GlusterFS | Almacenamiento distribuido |
 | Samba | Compartición de archivos |
