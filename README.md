@@ -176,7 +176,7 @@ El acceso al almacenamiento puede realizarse mediante una IP virtual compartida,
 
 ---
 
-# 🧰 Tecnologías utilizadas
+# Herramientas utilizadas
 
 | Tecnología | Función |
 |-----------|-----------|
@@ -191,7 +191,7 @@ El acceso al almacenamiento puede realizarse mediante una IP virtual compartida,
 
 ---
 
-# 📊 Resultados esperados
+# 📊 Finalidad
 
 Con la implementación de este sistema se pretende obtener:
 
