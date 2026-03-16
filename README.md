@@ -12,7 +12,6 @@ Infraestructura diseñada para automatizar la protección de servicios críticos
 
 - Introducción
 - Objetivos del proyecto
-- Arquitectura del sistema
 - Componentes de la infraestructura
 - Flujo de funcionamiento de los backups
 - Cluster de almacenamiento
