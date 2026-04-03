@@ -1,0 +1,9 @@
+#!/bin/bash
+export BORG_PASSPHRASE="{{ borg_passphrase }}"
+export BORG_RSH="ssh -i /home/{{ borg_client_user }}/.ssh/id_borg"
+
+REPO="ssh://{{ borg_backup_user }}@{{ borg_server_ip }}{{ borg_repo_path }}"
+
+borg create ${REPO}::backup-$(date +%Y-%m-%d) /home /etc /var/log
+
+borg prune --keep-daily 7 ${REPO}

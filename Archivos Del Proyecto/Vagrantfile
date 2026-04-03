@@ -1,0 +1,61 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+ENV["VAGRANT_EXPERIMENTAL"] = "disks"
+
+Vagrant.configure("2") do |config|
+
+  config.vm.boot_timeout = 600
+
+  config.vm.define "borg-server" do |server|
+    server.vm.box = "ubuntu/jammy64"
+    server.vm.hostname = "borg-server"
+    server.vm.network "public_network", ip: "192.168.1.213", bridge: "Realtek PCIe GbE Family Controller"
+
+    server.vm.provider "virtualbox" do |vb|
+      vb.name = "borg-server"
+      vb.memory = "2048"
+      vb.cpus = 2
+      vb.gui = false
+      vb.customize ["modifyvm", :id, "--uart1", "0x3F8", "4"]
+      vb.customize ["modifyvm", :id, "--uartmode1", "file", File::NULL]
+    end
+    server.vm.disk :disk, size: "250GB", name: "Almacenamiento_backup"
+  end
+
+###################################################################################
+
+  config.vm.define "borg-client" do |client|
+    client.vm.box = "ubuntu/jammy64"
+    client.vm.hostname = "borg-client"
+    client.vm.network "public_network", ip: "192.168.1.214", bridge: "Realtek PCIe GbE Family Controller"
+
+    client.vm.provider "virtualbox" do |vb|
+      vb.name = "borg-client"
+      vb.memory = "2048"
+      vb.cpus = 2
+      vb.gui = false
+      vb.customize ["modifyvm", :id, "--uart1", "0x3F8", "4"]
+      vb.customize ["modifyvm", :id, "--uartmode1", "file", File::NULL]
+    end
+    client.vm.disk :disk, size: "50GB", name: "Almacenamiento_cliente"
+
+    # Copia las claves SSH con permisos y propietario correctos para el usuario vagrant
+    client.vm.provision "shell", inline: <<-SHELL
+      mkdir -p /home/vagrant/.ssh/vagrant_keys
+      cp /vagrant/.vagrant/machines/borg-server/virtualbox/private_key /home/vagrant/.ssh/vagrant_keys/borg-server.key
+      cp /vagrant/.vagrant/machines/borg-client/virtualbox/private_key /home/vagrant/.ssh/vagrant_keys/borg-client.key
+      chown -R vagrant:vagrant /home/vagrant/.ssh/vagrant_keys
+      chmod 700 /home/vagrant/.ssh/vagrant_keys
+      chmod 600 /home/vagrant/.ssh/vagrant_keys/borg-server.key
+      chmod 600 /home/vagrant/.ssh/vagrant_keys/borg-client.key
+    SHELL
+
+    # Ansible se lanza desde dentro de la VM (compatible con Windows)
+    client.vm.provision "ansible_local" do |ansible|
+      ansible.playbook       = "site.yml"
+      ansible.inventory_path = "inventory/hosts.ini"
+      ansible.limit          = "all"
+    end
+  end
+end
