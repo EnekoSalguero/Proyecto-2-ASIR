@@ -70,20 +70,6 @@ El cliente lanza las copias de seguridad hacia el servidor a través de SSH, usa
 
 ---
 
-## 🚀 Uso
-
-```bash
-# Clonar el repositorio
-git clone https://github.com/tu-usuario/tu-repo.git
-cd tu-repo
-
-# Levantar el entorno completo (lanza VMs y ejecuta Ansible)
-vagrant up
-
-# Para reprovisionar manualmente
-vagrant provision borg-client
-```
-
 > **Requisitos previos:** VirtualBox y Vagrant instalados en el host. Compatible con Windows gracias al uso de `ansible_local`.
 
 ---
