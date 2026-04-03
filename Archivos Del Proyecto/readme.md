@@ -7,8 +7,8 @@ Infraestructura como código para desplegar y configurar automáticamente un sis
 ## 📐 Arquitectura
 
 ```
-┌─────────────────────┐        SSH / Borg        ┌─────────────────────┐
-│    borg-client      │ ──────────────────────►  │    borg-server      │
+┌─────────────────────┐        SSH / Borg         ┌─────────────────────┐
+│    borg-client      │ ──────────────────────►   │    borg-server      │
 │  192.168.1.214      │                           │  192.168.1.213      │
 │  Ubuntu 22.04       │                           │  Ubuntu 22.04       │
 │  RAM: 2 GB          │                           │  RAM: 2 GB          │
