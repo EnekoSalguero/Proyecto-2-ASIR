@@ -1,0 +1,100 @@
+Diario del proyecto: Infraestructura de Orquestacion de Copias de Seguridad
+
+Elaborado por: Enrique Sosa, Eneko Salguero y Marcos Guerra
+
+
+El objetivo de este proyecto es montar una infraestructura que permita gestionar de forma automatizada las copias de seguridad de diferentes máquinas en una red local
+
+Para ello se ha utilizado BorgBackup como herramienta principal de backup
+
+Ansible para la orquestación y configuración automática de todas las máquinas, y Vagrant con VirtualBox para la creación y gestión del entorno virtualizado
+
+La infraestructura se compone de cuatro máquinas: 
+  Un servidor de backups basado en BorgBackup 
+  Un cliente Borg desde el que se orquesta la configuración 
+  Un servidor Samba que actúa como almacenamiento redundante 
+  Un servidor Apache cuyo contenido web se respalda automáticamente.
+
+
+**20 de Enero**
+
+Durante esta primera sesión se definió la arquitectura del proyecto y se establecieron los roles de cada máquina dentro de la infraestructura
+
+Se debatió qué herramientas utilizar para el aprovisionamiento y se optó por Vagrant junto con Ansible, ya que permiten automatizar el despliegue completo desde cero
+
+Se comenzó a trabajar en el Vagrantfile, configurando las cuatro máquinas virtuales con sus IPs estáticas mediante adaptador puente sobre la interfaz de red física del equipo anfitrión
+
+También se creó la estructura de directorios del proyecto de Ansible, incluyendo los roles, el inventario, las variables globales en group_vars/all.yml y el playbook principal site.yml
+
+
+
+
+**3 de Febrero**
+
+En esta sesión se desarrollaron los primeros roles de Ansible 
+
+El rol samba_server se encargó de instalar Samba, crear el usuario borguser, configurar el share en smb.conf y arrancar el servicio
+
+El rol borg_server instaló BorgBackup, creó el usuario borg y preparó el directorio de repositorios donde cada cliente almacenaría sus copias de seguridad
+
+Se definieron las variables clave del sistema en group_vars/all.yml, incluyendo las rutas de los repositorios Borg, las credenciales de Samba y las IPs de cada servidor
+
+
+
+**17 de Febrero**
+
+Se desarrolló el rol borg_client, diseñado para ser reutilizable tanto en el cliente Vagrant como en el servidor Apache
+
+El rol genera un par de claves SSH por host, registra la clave pública en el servidor Borg con restricciones de comando, inicializa el repositorio correspondiente y programa el backup diario mediante cron a las 02:00
+
+También se configuró el montaje del share Samba en borg-server como almacenamiento redundante, y se desarrolló el script de sincronización que copia los backups hacia Samba cada noche a las 03:00
+
+
+**3 de Marzo**
+
+Al lanzar el playbook completo por primera vez apareció el primer error crítico: el montaje del share Samba en borg-server fallaba con mount error(13): Permission denied
+
+Se investigó el problema revisando las credenciales, la versión del protocolo SMB y los logs de Samba mediante pdbedit y testparm
+
+El diagnóstico reveló que el directorio /srv/samba/ había sido creado por Ansible con owner: root, mode: 0770, por lo que el usuario borguser no podía traversarlo para llegar al share
+
+La solución fue aplicar chmod o+x /srv/samba manualmente y corregir el rol para crear el directorio base con mode: 0755
+
+Además se identificó que faltaba la opción vers=3.0 en el montaje CIFS, necesaria en Ubuntu 22.04 donde SMB1 está desactivado por defecto
+
+
+
+**20 de Marzo**
+
+En esta sesión se resolvieron los últimos problemas del rol borg_server y se verificó que el share Samba montaba correctamente desde borg-server
+
+Se realizaron pruebas manuales de conectividad con smbclient y mount -t cifs para confirmar que las credenciales y los permisos eran correctos antes de volver a lanzar el playbook
+
+El playbook completó con éxito en borg-server y samba-server, pero al llegar a apache-server surgieron nuevos problemas que quedaron pendientes para la siguiente sesión
+
+
+
+**7 de Abril**
+
+Apache-server resultó inaccesible por SSH desde Windows con error Connection refused
+
+La máquina respondía a ping y SSH escuchaba correctamente en el puerto 22, pero UFW estaba activo y bloqueaba las conexiones entrantes
+
+Se añadió la regla correspondiente al firewall manualmente y se incorporó al rol la tarea de permitir el puerto 22 de forma permanente
+
+Una vez resuelta la conectividad, el playbook falló al instalar BorgBackup porque el proceso unattended-upgrades mantenía el lock de apt bloqueado durante más de 120 segundos
+
+Se mató el proceso manualmente y se rediseñó la tarea inicial del rol para liberar el lock de forma activa antes de cualquier instalación
+
+
+**13 de Abril**
+
+Tras corregir todos los errores anteriores se lanzó el playbook completo desde cero con vagrant destroy && vagrant up
+
+El proceso de instalación de Ansible dentro de la VM tardó aproximadamente 20 minutos al realizarse mediante pip, pero finalmente el despliegue completó con failed=0 en los cuatro hosts
+
+Los únicos ignored=1 registrados correspondían al comando borg init cuando detectaba que el repositorio ya existía de ejecuciones anteriores, comportamiento esperado y controlado mediante ignore_errors: yes
+
+Se verificó el correcto funcionamiento del sistema comprobando que el share Samba estaba montado, los repositorios Borg inicializados para cada cliente y los scripts de backup desplegados y programados en cron
+
+La infraestructura quedó completamente operativa y reproducible con un único comando
