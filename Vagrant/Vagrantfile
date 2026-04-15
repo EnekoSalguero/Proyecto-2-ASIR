@@ -1,0 +1,142 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+ENV["VAGRANT_EXPERIMENTAL"] = "disks"
+
+Vagrant.configure("2") do |config|
+  config.vm.boot_timeout = 600
+  config.vm.box = "ubuntu/jammy64"
+
+  config.vm.define "borg-server" do |server|
+    server.vm.hostname = "borg-server"
+    server.vm.network "public_network", bridge: "Realtek PCIe GbE Family Controller"
+    server.vm.disk :disk, size: "250GB", name: "Almacenamiento_backup"
+
+    server.vm.provider "virtualbox" do |vb|
+      vb.name = "borg-server"
+      vb.memory = "2048"
+      vb.cpus = 2
+      vb.gui = false
+      vb.customize ["modifyvm", :id, "--uart1", "0x3F8", "4"]
+      vb.customize ["modifyvm", :id, "--uartmode1", "file", File::NULL]
+    end
+
+    server.vm.provision "shell", inline: <<-SHELL
+      # Configurar IP estática en el adaptador puente
+      cat > /etc/netplan/99-bridge.yaml <<EOF
+network:
+  version: 2
+  ethernets:
+    enp0s8:
+      dhcp4: no
+      addresses: [192.168.1.46/24]
+      routes:
+        - to: default
+          via: 192.168.1.1
+      nameservers:
+        addresses: [8.8.8.8, 8.8.4.4]
+EOF
+      netplan apply
+      echo "192.168.1.46" > /vagrant/server_ip.txt
+    SHELL
+  end
+
+  config.vm.define "borg-client" do |client|
+    client.vm.hostname = "borg-client"
+    client.vm.network "public_network", bridge: "Realtek PCIe GbE Family Controller"
+    client.vm.disk :disk, size: "50GB", name: "Almacenamiento_cliente"
+
+    client.vm.provider "virtualbox" do |vb|
+      vb.name = "borg-client"
+      vb.memory = "2048"
+      vb.cpus = 2
+      vb.gui = false
+      vb.customize ["modifyvm", :id, "--uart1", "0x3F8", "4"]
+      vb.customize ["modifyvm", :id, "--uartmode1", "file", File::NULL]
+    end
+
+    client.vm.provision "shell", inline: <<-SHELL
+      # Configurar IP estática en el adaptador puente
+      cat > /etc/netplan/99-bridge.yaml <<EOF
+network:
+  version: 2
+  ethernets:
+    enp0s8:
+      dhcp4: no
+      addresses: [192.168.1.47/24]
+      routes:
+        - to: default
+          via: 192.168.1.1
+      nameservers:
+        addresses: [8.8.8.8, 8.8.4.4]
+EOF
+      netplan apply
+
+      # Claves SSH de las VMs Vagrant
+      mkdir -p /home/vagrant/.ssh/vagrant_keys
+      cp /vagrant/.vagrant/machines/borg-server/virtualbox/private_key /home/vagrant/.ssh/vagrant_keys/borg-server.key
+      cp /vagrant/.vagrant/machines/borg-client/virtualbox/private_key /home/vagrant/.ssh/vagrant_keys/borg-client.key
+      chown -R vagrant:vagrant /home/vagrant/.ssh/vagrant_keys
+      chmod 600 /home/vagrant/.ssh/vagrant_keys/*.key
+
+      # Claves SSH de las VMs manuales (apache y samba)
+      # Se copian desde ssh_keys/ que está en la carpeta compartida /vagrant
+      mkdir -p /home/vagrant/.ssh
+      cp /vagrant/ssh_keys/apache-server.key /home/vagrant/.ssh/apache-server.key
+      cp /vagrant/ssh_keys/samba-server.key  /home/vagrant/.ssh/samba-server.key
+      chown vagrant:vagrant /home/vagrant/.ssh/apache-server.key
+      chown vagrant:vagrant /home/vagrant/.ssh/samba-server.key
+      chmod 600 /home/vagrant/.ssh/apache-server.key
+      chmod 600 /home/vagrant/.ssh/samba-server.key
+      # Dependencias para Ansible
+      apt-get install -y python3-passlib
+
+      # /etc/hosts con todas las IPs fijas
+      echo "192.168.1.46 borg-server"   >> /etc/hosts
+      echo "192.168.1.47 borg-client"   >> /etc/hosts
+      echo "192.168.1.42 apache-server" >> /etc/hosts
+      echo "192.168.1.44 samba-server"  >> /etc/hosts
+
+      # group_vars/all.yml
+      cat > /vagrant/group_vars/all.yml <<EOF
+borg_server_ip: "192.168.1.46"
+borg_repo_path: "/home/borg/backups"
+borg_backup_user: "borg"
+borg_passphrase: "tu_passphrase_aqui"
+borg_client_user: "vagrant"
+borg_backup_paths:
+  - /home
+  - /etc
+  - /var/log
+apache_web_root: "/var/www/html"
+samba_server_ip: "192.168.1.44"
+samba_share_name: "borg_backups"
+samba_share_path: "/srv/samba/borg_backups"
+samba_user: "borguser"
+samba_password: "tu_samba_password"
+samba_mount_point: "/mnt/samba_backup"
+EOF
+
+      # inventory/hosts.ini
+      cat > /vagrant/inventory/hosts.ini <<EOF
+[borg_server]
+borg-server ansible_host=192.168.1.46 ansible_user=vagrant ansible_ssh_private_key_file=/home/vagrant/.ssh/vagrant_keys/borg-server.key ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+
+[borg_client]
+borg-client ansible_connection=local
+
+[apache_server]
+apache-server ansible_host=192.168.1.42 ansible_user=root ansible_ssh_private_key_file=/home/vagrant/.ssh/apache-server.key ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+
+[samba_server]
+samba-server ansible_host=192.168.1.44 ansible_user=root ansible_ssh_private_key_file=/home/vagrant/.ssh/samba-server.key ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+EOF
+    SHELL
+
+    client.vm.provision "ansible_local" do |ansible|
+      ansible.playbook       = "site.yml"
+      ansible.inventory_path = "inventory/hosts.ini"
+      ansible.limit          = "all"
+    end
+  end
+end
