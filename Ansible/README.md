@@ -89,13 +89,13 @@ Configura cualquier máquina que deba hacer backup:
 | `borg_server_ip` | IP del servidor Borg | `192.168.1.46` |
 | `borg_repo_path` | Ruta de repositorios en el servidor | `/home/borg/backups` |
 | `borg_backup_user` | Usuario Borg en el servidor | `borg` |
-| `borg_passphrase` | Passphrase de cifrado | ⚠️ **Cámbiala** |
+| `borg_passphrase` | Passphrase de cifrado | ⚠️ **Cambiarla Al Gusto** |
 | `borg_client_user` | Usuario que ejecuta los backups | `vagrant` |
 | `borg_backup_paths` | Rutas a respaldar | `/home`, `/etc`, `/var/log` |
 | `samba_server_ip` | IP del servidor Samba | `192.168.1.44` |
 | `samba_share_name` | Nombre del share | `borg_backups` |
 | `samba_user` | Usuario Samba | `borguser` |
-| `samba_password` | Contraseña Samba | ⚠️ **Cámbiala** |
+| `samba_password` | Contraseña Samba | ⚠️ **Cambiarla Al Gusto** |
 | `samba_mount_point` | Punto de montaje en borg-server | `/mnt/samba_backup` |
 
 > ⚠️ **Antes de desplegar**, edita `group_vars/all.yml` y cambia `borg_passphrase` y `samba_password` por valores seguros reales.
