@@ -1,0 +1,26 @@
+#!/bin/bash
+# Sincroniza todos los repositorios Borg al share Samba
+# Generado por Ansible — no editar manualmente
+
+ORIGEN="{{ borg_repo_path }}/"
+DESTINO="{{ samba_mount_point }}/"
+
+echo "=== Sincronización a Samba iniciada: $(date +%Y-%m-%dT%H:%M:%S) ==="
+
+# Verificar que el share está montado
+if ! mountpoint -q "${DESTINO}"; then
+  echo "ERROR: El share Samba no está montado en ${DESTINO}" >&2
+  mount "{{ samba_mount_point }}" || exit 1
+fi
+
+# rsync copia incremental — solo transfiere lo que ha cambiado
+rsync -av --delete \
+  "${ORIGEN}" \
+  "${DESTINO}"
+
+if [ $? -eq 0 ]; then
+  echo "=== Sincronización completada: $(date +%Y-%m-%dT%H:%M:%S) ==="
+else
+  echo "ERROR: rsync falló" >&2
+  exit 1
+fi

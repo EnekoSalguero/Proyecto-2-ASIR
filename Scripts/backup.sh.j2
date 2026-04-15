@@ -1,0 +1,29 @@
+#!/bin/bash
+# Generado por Ansible — no editar manualmente
+
+export BORG_PASSPHRASE="{{ borg_passphrase }}"
+export BORG_RSH="ssh -i {{ (borg_client_user == 'root') | ternary('/root', '/home/' + borg_client_user) }}/.ssh/id_borg"
+
+REPO="ssh://{{ borg_backup_user }}@{{ borg_server_ip }}{{ borg_repo_path }}/{{ inventory_hostname }}"
+FECHA=$(date +%Y-%m-%dT%H:%M:%S)
+
+echo "=== Backup iniciado: $FECHA ==="
+
+borg create \
+  --stats \
+  --compression lz4 \
+  "${REPO}::backup-${FECHA}" \
+  {{ borg_backup_paths | join(' \\\n  ') }}
+
+if [ $? -ne 0 ]; then
+  echo "ERROR: borg create falló" >&2
+  exit 1
+fi
+
+borg prune \
+  --keep-daily  7 \
+  --keep-weekly 4 \
+  --keep-monthly 6 \
+  "${REPO}"
+
+echo "=== Backup completado: $(date +%Y-%m-%dT%H:%M:%S) ==="
