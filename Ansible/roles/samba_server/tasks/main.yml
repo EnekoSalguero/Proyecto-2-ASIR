@@ -1,0 +1,68 @@
+---
+- name: Instalar Samba
+  apt:
+    name:
+      - samba
+      - samba-common-bin
+    state: present
+    update_cache: yes
+ 
+- name: Crear directorio base de Samba
+  file:
+    path: /srv/samba
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Crear directorio del share para los backups
+  file:
+    path: "{{ samba_share_path }}"
+    state: directory
+    owner: "{{ samba_user }}"
+    group: "{{ samba_user }}"
+    mode: '0770'
+ 
+- name: Crear usuario del sistema para Samba
+  user:
+    name: "{{ samba_user }}"
+    shell: /usr/sbin/nologin
+    create_home: no
+    password: "{{ samba_password | password_hash('sha512') }}"
+ 
+- name: Dar propiedad del share al usuario Samba
+  file:
+    path: "{{ samba_share_path }}"
+    owner: "{{ samba_user }}"
+    group: "{{ samba_user }}"
+    recurse: yes
+ 
+- name: Establecer contraseña Samba del usuario
+  shell: |
+    (echo "{{ samba_password }}"; echo "{{ samba_password }}") | smbpasswd -a -s {{ samba_user }}
+  no_log: true
+ 
+- name: Habilitar usuario en Samba
+  shell: smbpasswd -e {{ samba_user }}
+  no_log: true
+ 
+- name: Configurar el share en smb.conf
+  blockinfile:
+    path: /etc/samba/smb.conf
+    block: |
+      [{{ samba_share_name }}]
+         path = {{ samba_share_path }}
+         valid users = {{ samba_user }}
+         read only = no
+         browsable = no
+         create mask = 0600
+         directory mask = 0700
+    marker: "# {mark} ANSIBLE MANAGED BLOCK - borg_backups"
+  notify: Reiniciar Samba
+ 
+- name: Asegurarse de que Samba está arrancado y habilitado
+  service:
+    name: smbd
+    state: started
+    enabled: yes
+    

@@ -1,0 +1,74 @@
+---
+- name: Instalar BorgBackup en servidor
+  apt:
+    name:
+      - borgbackup
+      - cifs-utils    # necesario para montar el share Samba
+    state: present
+    update_cache: yes
+
+- name: Crear usuario borg
+  user:
+    name: "{{ borg_backup_user }}"
+    shell: /bin/bash
+    create_home: yes
+
+- name: Crear directorio raíz de repositorios
+  file:
+    path: "{{ borg_repo_path }}"
+    state: directory
+    owner: "{{ borg_backup_user }}"
+    mode: '0700'
+
+- name: Crear directorio .ssh para usuario borg
+  file:
+    path: /home/{{ borg_backup_user }}/.ssh
+    state: directory
+    owner: "{{ borg_backup_user }}"
+    mode: '0700'
+
+- name: Crear archivo authorized_keys vacío si no existe
+  file:
+    path: /home/{{ borg_backup_user }}/.ssh/authorized_keys
+    state: touch
+    owner: "{{ borg_backup_user }}"
+    mode: '0600'
+
+# ── Conexión con Samba para redundancia ──────────────────────
+- name: Crear punto de montaje para el share Samba
+  file:
+    path: "{{ samba_mount_point }}"
+    state: directory
+    mode: '0700'
+
+- name: Guardar credenciales Samba de forma segura
+  copy:
+    dest: /etc/samba-borg.creds
+    content: |
+      username={{ samba_user }}
+      password={{ samba_password }}
+      domain=WORKGROUP
+    owner: root
+    mode: '0600'
+
+- name: Montar share Samba en fstab (persistente tras reinicios)
+  mount:
+    path: "{{ samba_mount_point }}"
+    src: "//{{ samba_server_ip }}/{{ samba_share_name }}"
+    fstype: cifs
+    opts: "credentials=/etc/samba-borg.creds,vers=3.0,uid=root,gid=root,file_mode=0700,dir_mode=0700,_netdev"
+    state: mounted
+
+- name: Desplegar script de sincronización hacia Samba
+  template:
+    src: sync_to_samba.sh.j2
+    dest: /usr/local/bin/borg-sync-samba.sh
+    mode: '0755'
+
+- name: Programar sincronización diaria hacia Samba (03:00, tras los backups)
+  cron:
+    name: "Sincronizar backups Borg a Samba"
+    minute: "0"
+    hour: "3"
+    job: "/usr/local/bin/borg-sync-samba.sh >> /var/log/borg-sync-samba.log 2>&1"
+    user: root

@@ -1,0 +1,92 @@
+---
+- name: Esperar a que apt esté disponible
+  shell: while fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do sleep 2; done
+  timeout: 120
+
+- name: Deshabilitar unattended-upgrades durante el playbook
+  service:
+    name: unattended-upgrades
+    state: stopped
+  ignore_errors: yes
+- name: Instalar BorgBackup en cliente
+  apt:
+    name: borgbackup
+    state: present
+    update_cache: yes
+
+- name: Asegurar directorio .ssh del usuario cliente
+  file:
+    path: "/home/{{ borg_client_user }}/.ssh"
+    state: directory
+    owner: "{{ borg_client_user }}"
+    mode: '0700'
+  # root tiene /root/.ssh, no /home/root
+  when: borg_client_user != 'root'
+
+- name: Asegurar directorio .ssh de root
+  file:
+    path: "/root/.ssh"
+    state: directory
+    owner: root
+    mode: '0700'
+  when: borg_client_user == 'root'
+
+- name: Generar par de claves SSH para el cliente
+  openssh_keypair:
+    path: "{{ (borg_client_user == 'root') | ternary('/root', '/home/' + borg_client_user) }}/.ssh/id_borg"
+    owner: "{{ borg_client_user }}"
+    type: rsa
+    size: 4096
+  register: ssh_key
+
+- name: Leer clave pública generada
+  slurp:
+    src: "{{ (borg_client_user == 'root') | ternary('/root', '/home/' + borg_client_user) }}/.ssh/id_borg.pub"
+  register: pub_key
+
+- name: Añadir clave pública al servidor (authorized_keys con restricción por host)
+  delegate_to: borg-server
+  lineinfile:
+    path: /home/{{ borg_backup_user }}/.ssh/authorized_keys
+    line: 'command="borg serve --restrict-to-path {{ borg_repo_path }}/{{ inventory_hostname }}",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty {{ pub_key.content | b64decode | trim }}'
+    create: yes
+    owner: "{{ borg_backup_user }}"
+    mode: '0600'
+
+- name: Crear subdirectorio del repositorio para este host en el servidor
+  delegate_to: borg-server
+  file:
+    path: "{{ borg_repo_path }}/{{ inventory_hostname }}"
+    state: directory
+    owner: "{{ borg_backup_user }}"
+    mode: '0700'
+
+- name: Añadir servidor a known_hosts del cliente
+  known_hosts:
+    name: "{{ borg_server_ip }}"
+    key: "{{ lookup('pipe', 'ssh-keyscan -t rsa ' + borg_server_ip) }}"
+    path: "{{ (borg_client_user == 'root') | ternary('/root', '/home/' + borg_client_user) }}/.ssh/known_hosts"
+
+- name: Inicializar repositorio Borg para este host
+  become_user: "{{ borg_client_user }}"
+  command: >
+    borg init --encryption=repokey
+    ssh://{{ borg_backup_user }}@{{ borg_server_ip }}{{ borg_repo_path }}/{{ inventory_hostname }}
+  environment:
+    BORG_PASSPHRASE: "{{ borg_passphrase }}"
+    BORG_RSH: "ssh -i {{ (borg_client_user == 'root') | ternary('/root', '/home/' + borg_client_user) }}/.ssh/id_borg"
+  ignore_errors: yes
+
+- name: Desplegar script de backup
+  template:
+    src: backup.sh.j2
+    dest: /usr/local/bin/borg-backup.sh
+    mode: '0755'
+
+- name: Programar cron diario a las 02:00
+  cron:
+    name: "Borg backup diario"
+    minute: "0"
+    hour: "2"
+    job: "/usr/local/bin/borg-backup.sh >> /var/log/borg-backup.log 2>&1"
+    user: "{{ borg_client_user }}"

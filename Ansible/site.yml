@@ -1,0 +1,29 @@
+---
+# 1. Samba primero: debe estar listo antes de que el servidor Borg intente montarlo
+- name: Configurar servidor Samba (almacenamiento redundante)
+  hosts: samba_server
+  become: yes
+  roles:
+    - samba_server
+
+# 2. Servidor Borg: monta el share Samba y queda listo para recibir clientes
+- name: Configurar servidor Borg
+  hosts: borg_server
+  become: yes
+  roles:
+    - borg_server
+
+# 3. Cliente Borg original (VM Vagrant)
+- name: Configurar cliente Borg (borg-client Vagrant)
+  hosts: borg_client
+  become: yes
+  roles:
+    - borg_client
+
+# 4. Apache: instala el servidor web y lo registra como cliente Borg
+- name: Configurar servidor Apache + cliente Borg
+  hosts: apache_server
+  become: yes
+  roles:
+    - apache_server
+    - borg_client

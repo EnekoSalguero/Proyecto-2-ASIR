@@ -1,0 +1,5 @@
+---
+# La VM apache corre como root para acceder a /var/www/html
+borg_client_user: "root"
+borg_backup_paths:
+  - /var/www/html

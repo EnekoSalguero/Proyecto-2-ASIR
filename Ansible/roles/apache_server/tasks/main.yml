@@ -1,0 +1,56 @@
+---
+- name: Matar unattended-upgrades y liberar lock de apt
+  shell: |
+    systemctl stop unattended-upgrades || true
+    while fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do
+      kill -9 $(fuser /var/lib/dpkg/lock-frontend 2>/dev/null) 2>/dev/null || true
+      sleep 1
+    done
+    rm -f /var/lib/dpkg/lock-frontend
+    rm -f /var/lib/dpkg/lock
+    dpkg --configure -a || true
+  args:
+    executable: /bin/bash
+  ignore_errors: yes
+
+- name: Instalar Apache
+  apt:
+    name: apache2
+    state: present
+    update_cache: yes
+
+- name: Permitir SSH en UFW
+  ufw:
+    rule: allow
+    port: '22'
+    proto: tcp
+
+- name: Asegurarse de que Apache está arrancado y habilitado
+  service:
+    name: apache2
+    state: started
+    enabled: yes
+
+- name: Crear directorio web si no existe
+  file:
+    path: "{{ apache_web_root }}"
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: '0755'
+
+- name: Desplegar página de ejemplo
+  copy:
+    dest: "{{ apache_web_root }}/index.html"
+    content: |
+      <!DOCTYPE html>
+      <html lang="es">
+        <head><meta charset="UTF-8"><title>Mi Sitio Web</title></head>
+        <body>
+          <h1>Servidor Apache</h1>
+          <p>El contenido de este sitio se respalda automáticamente con BorgBackup.</p>
+        </body>
+      </html>
+    owner: www-data
+    group: www-data
+    mode: '0644'
