@@ -1,5 +1,0 @@
-borg_repo_path: /backup/borg-repo
-borg_backup_user: borg
-borg_passphrase: "TuPassphraseSuperSegura123"
-borg_client_user: vagrant
-borg_server_ip: 192.168.1.213
